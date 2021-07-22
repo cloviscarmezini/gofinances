@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, createContext } from 'react';
+import React, { ReactNode, useContext, createContext, useState } from 'react';
 
 import * as AuthSession from 'expo-auth-session';
 
@@ -18,27 +18,52 @@ interface AuthContextData {
     signInWithGoogle: () => Promise<void>;
 }
 
+interface AuthorizationResponseProps {
+    params: {
+        access_token: string;
+    },
+    type: string;
+}
+
+interface GoogleResponseProps {
+    id: string;
+    email: string;
+    name: string;
+    family_name: string;
+    given_name: string;
+    picture: string;
+}
+
 export const AuthContext = createContext({} as AuthContextData);
 
 export function AuthProvider({ children }: AuthProviderProps) {
-    const user = {
-        id: '123',
-        name: 'Clovão',
-        email: 'cloviscarmezini14@gmail.com',
-    };
+    const [user, setUser] = useState<UserProps>({} as UserProps);
 
     async function signInWithGoogle() {
         try {
-            const CLIENT_ID = '1061818463754-4h8m0usqu70dnjfvpmvc3l280saogamr.apps.googleusercontent.com';
-            const REDIRECT_URI = 'https://auth.expo.io/@clovis.carmezini/gofinances';
+            const CLIENT_ID = process.env.CLIENT_ID;
+            const REDIRECT_URI = process.env.REDIRECT_URI;
             const RESPONSE_TYPE = 'token';
             const SCOPE = encodeURI('profile email');
 
             const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
 
-            const response = await AuthSession.startAsync({ authUrl });
+            const { type, params }  = await AuthSession
+                .startAsync({ authUrl }) as AuthorizationResponseProps;
 
-            console.log(response);
+            if(type === 'success') {
+                const response = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${params.access_token}`)
+                const userInfo = await response.json() as GoogleResponseProps;
+                
+                setUser({
+                    id: userInfo.id,
+                    name: userInfo.given_name,
+                    email: userInfo.email,
+                    photo: userInfo.picture
+                });
+
+                console.log(user);
+            }
         } catch(error) {
             throw new Error(error);
         }
