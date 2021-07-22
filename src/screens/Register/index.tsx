@@ -11,13 +11,15 @@ import { Button } from '../../components/Form/Button';
 import { TransactionTypeButton } from '../../components/Form/TransactionTypeButton';
 import { CategorySelectButton } from '../../components/Form/CategorySelectButton';
 import { Header } from '../../components/Header';
+import { CategorySelect } from '../CategorySelect';
 
-import { useForm } from "react-hook-form";
-
+import uuid from 'react-native-uuid';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { CategorySelect } from '../CategorySelect';
+import { useForm } from "react-hook-form";
+import { useNavigation } from '@react-navigation/native';
 
 import { 
     Container,
@@ -26,13 +28,14 @@ import {
     TransactionsType
  } from './styles';
 
+
  interface FormDataProps {
-    name: string;
+    title: string;
     amount: string;
  }
 
  const schema = Yup.object().shape({
-    name: Yup.string().required('Nome é obrigatório'),
+    title: Yup.string().required('Nome é obrigatório'),
     amount: Yup
         .number()
         .typeError('Informe um valor numérico')
@@ -47,12 +50,26 @@ export function Register() {
         name: 'Categoria'
     });
 
-    const { control, handleSubmit, formState: { errors } } = useForm({
+    const navigation =useNavigation();
+
+    const { control, handleSubmit, reset, formState: { errors } } = useForm({
         resolver: yupResolver(schema)
     });
 
+    async function getTransactions() {
+        const dataKey = '@gofinances:transactions';
 
-    function onSubmit(formData: FormDataProps) {
+        try {
+            const transactionsData = await AsyncStorage.getItem(dataKey);
+
+            return transactionsData ? JSON.parse(transactionsData!) : [];
+        } catch(error) {
+            console.log(error)
+            return [];
+        }
+    }
+
+    async function handleRegister(formData: FormDataProps) {
         if(!transactionType) {
             return Alert.alert('Selecione o tipo da transação');
         }
@@ -61,14 +78,39 @@ export function Register() {
             return Alert.alert('Selecione a categoria');
         }
 
-        const data = {
-            name: formData.name,
+        const newTransaction = {
+            id: String(uuid.v4()),
+            title: formData.title,
             amount: formData.amount,
-            transactionType,
-            category: category.key
+            type: transactionType,
+            category: category.key,
+            date: new Date()
         }
-        
-        console.log(data)
+
+        const currentTransactions = await getTransactions();
+
+        const newTransactions = [
+            ...currentTransactions,
+            newTransaction
+        ];
+
+        try {
+            const dataKey = '@gofinances:transactions';
+
+            await AsyncStorage.setItem(dataKey, JSON.stringify(newTransactions));
+            
+            reset();
+            setTransactionType('');
+            setCategory({
+                key: 'category',
+                name: 'Categoria'
+            });
+
+            navigation.navigate('Listagem');
+        } catch(error) {
+            console.log(error);
+            Alert.alert('Não foi possível salvar');
+        }
     }
 
     function handleTransactionsTypeSelect(type: 'income' | 'expanse') {
@@ -92,11 +134,11 @@ export function Register() {
                     <Fields>
                         <InputForm 
                             control={control}
-                            name="name"
+                            name="title"
                             placeholder="Nome"
                             autoCapitalize="sentences"
                             autoCorrect={false}
-                            error={errors.name?.message}
+                            error={errors.title?.message}
                         />
 
                         <InputForm 
@@ -137,9 +179,9 @@ export function Register() {
                         />
                     </Modal>
 
-                    <Button 
+                    <Button
                         title="Enviar" 
-                        onPress={handleSubmit(onSubmit)}
+                        onPress={handleSubmit(handleRegister)}
                     />
                 </Form>
             </Container>
