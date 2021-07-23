@@ -7,7 +7,7 @@ export const Container = styled.View`
     align-items: center;
 `
 
-export const LoaderIcon = styled(ActivityIndicator).attrs(({theme}) => ({
-    color: theme.colors.secondary,
+export const LoaderIcon = styled(ActivityIndicator).attrs(({theme, color}) => ({
+    color: color ? color : theme.colors.secondary,
     size: 'large'
 }))``

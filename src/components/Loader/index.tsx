@@ -5,10 +5,14 @@ import {
     LoaderIcon
 } from './styles';
 
-export function Loader() {
+interface LoaderProps {
+    color?: string;
+}
+
+export function Loader({ color }: LoaderProps) {
     return (
         <Container>
-            <LoaderIcon/>
+            <LoaderIcon color={color}/>
         </Container>
     );
 }

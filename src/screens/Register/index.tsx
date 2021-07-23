@@ -27,6 +27,7 @@ import {
     Fields,
     TransactionsType
  } from './styles';
+import { useAuth } from '../../hooks/auth';
 
 
  interface FormDataProps {
@@ -49,6 +50,9 @@ export function Register() {
         key: 'category',
         name: 'Categoria'
     });
+    
+    const { user } = useAuth();
+    const dataKey = `@gofinances:transactions_user:${user.email}`;
 
     const navigation =useNavigation();
 
@@ -57,8 +61,6 @@ export function Register() {
     });
 
     async function getTransactions() {
-        const dataKey = '@gofinances:transactions';
-
         try {
             const transactionsData = await AsyncStorage.getItem(dataKey);
 
@@ -95,8 +97,6 @@ export function Register() {
         ];
 
         try {
-            const dataKey = '@gofinances:transactions';
-
             await AsyncStorage.setItem(dataKey, JSON.stringify(newTransactions));
             
             reset();

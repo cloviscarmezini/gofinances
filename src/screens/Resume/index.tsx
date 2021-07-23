@@ -18,6 +18,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { MonthSelector } from '../../components/MonthSelector';
 import { Loader } from '../../components/Loader';
+import { useAuth } from '../../hooks/auth';
 
 interface TransactionProps {
     type: 'income' | 'expanse';
@@ -41,9 +42,10 @@ export function Resume() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
 
-    async function getTransactions() {
-        const dataKey = '@gofinances:transactions';
+    const { user } = useAuth();
+    const dataKey = `@gofinances:transactions_user:${user.email}`;
 
+    async function getTransactions() {
         try {
             const transactionsData = await AsyncStorage.getItem(dataKey);
 
