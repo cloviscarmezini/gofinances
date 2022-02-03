@@ -2,7 +2,8 @@
   "name": "gofinances",
   "displayName": "gofinances",
   "expo": {
-    "name": "gofinances",
+    "name": "goFinances",
+    "icon": "./assets/icon.png",
     "owner": "clovis.carmezini",
     "slug": "gofinances",
     "scheme": "gofinances",
@@ -11,6 +12,14 @@
       "**/*"
     ],
     "description": "",
-    "githubUrl": "https://github.com/cloviscarmezini/gofinances"
+    "githubUrl": "https://github.com/cloviscarmezini/gofinances",
+    "ios": {
+      "bundleIdentifier": "com.gofinances",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "package": "com.gofinances",
+      "versionCode": 1
+    }
   }
 }
